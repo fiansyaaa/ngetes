@@ -1,6 +1,120 @@
 import kagglehub
+import subprocess
+import os
+import shutil
 
-# Download latest version
-path = kagglehub.dataset_download("uciml/iris")
+# --- KONFIGURASI YANG PERLU ANDA UBAH ---
+KAGGLE_DATASET_SLUG = "uciml/iris"  # Contoh: "uciml/iris" atau "username/dataset-name"
+# Path absolut ke folder utama repository Git LOKAL Anda
+# Contoh Windows: "C:/Users/NamaAnda/Documents/GitHub/nama_repo_anda"
+# Contoh Linux/macOS: "/home/NamaAnda/proyek/nama_repo_anda"
+LOCAL_REPO_PATH = "/path/ke/folder/repository/git/lokal_anda"
+# Folder di dalam repository Anda untuk menyimpan data (akan dibuat jika belum ada)
+DATA_SUBFOLDER_IN_REPO = "data"
+COMMIT_MESSAGE = "Otomatis menambahkan/memperbarui dataset dari Kaggle"
+# -------------------------------------------
 
-print("Path to dataset files:", path)
+def run_git_command(command, working_dir):
+    """Menjalankan perintah Git dan mencetak outputnya."""
+    print(f"Menjalankan: {' '.join(command)} di {working_dir}")
+    process = subprocess.Popen(command, cwd=working_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stdout, stderr = process.communicate()
+    if process.returncode == 0:
+        print("Output Git:")
+        if stdout:
+            print(stdout)
+        print("Perintah Git berhasil.")
+        return True
+    else:
+        print("Error Git:")
+        if stdout:
+            print(stdout)
+        if stderr:
+            print(stderr)
+        print(f"Perintah Git gagal dengan kode: {process.returncode}")
+        return False
+
+def main():
+    # 1. Pastikan path repository lokal valid
+    if not os.path.isdir(LOCAL_REPO_PATH):
+        print(f"Error: Path repository lokal tidak ditemukan: {LOCAL_REPO_PATH}")
+        return
+
+    # 2. Unduh dataset menggunakan kagglehub
+    print(f"Mengunduh dataset: {KAGGLE_DATASET_SLUG}...")
+    try:
+        downloaded_dataset_path = kagglehub.dataset_download(KAGGLE_DATASET_SLUG)
+        print(f"Dataset berhasil diunduh ke: {downloaded_dataset_path}")
+    except Exception as e:
+        print(f"Error saat mengunduh dataset dari Kaggle: {e}")
+        return
+
+    # 3. Tentukan path tujuan di dalam repository lokal
+    destination_folder_in_repo = os.path.join(LOCAL_REPO_PATH, DATA_SUBFOLDER_IN_REPO)
+
+    # Buat folder tujuan jika belum ada
+    if not os.path.exists(destination_folder_in_repo):
+        print(f"Membuat folder tujuan: {destination_folder_in_repo}")
+        os.makedirs(destination_folder_in_repo)
+
+    # 4. Salin file dari path unduhan kagglehub ke folder tujuan di repo
+    # kagglehub.dataset_download() mengembalikan path ke folder berisi dataset
+    print(f"Menyalin file dari {downloaded_dataset_path} ke {destination_folder_in_repo}...")
+    try:
+        # Cek apakah path unduhan adalah direktori
+        if os.path.isdir(downloaded_dataset_path):
+            for item_name in os.listdir(downloaded_dataset_path):
+                source_item_path = os.path.join(downloaded_dataset_path, item_name)
+                destination_item_path = os.path.join(destination_folder_in_repo, item_name)
+
+                if os.path.isfile(source_item_path):
+                    print(f"  Menyalin file: {item_name}")
+                    shutil.copy2(source_item_path, destination_item_path)
+                elif os.path.isdir(source_item_path):
+                    print(f"  Menyalin folder: {item_name}")
+                    # Hapus folder tujuan jika sudah ada untuk menghindari error copytree
+                    if os.path.exists(destination_item_path):
+                        shutil.rmtree(destination_item_path)
+                    shutil.copytree(source_item_path, destination_item_path)
+        else: # Jika ternyata path unduhan adalah satu file (kurang umum untuk dataset)
+            file_name = os.path.basename(downloaded_dataset_path)
+            destination_item_path = os.path.join(destination_folder_in_repo, file_name)
+            print(f"  Menyalin file tunggal: {file_name}")
+            shutil.copy2(downloaded_dataset_path, destination_item_path)
+
+        print("Penyalinan file selesai.")
+    except Exception as e:
+        print(f"Error saat menyalin file ke repository: {e}")
+        return
+
+    # 5. Jalankan perintah Git
+    print("\n--- Proses Git Dimulai ---")
+
+    # Git Add
+    target_to_add = os.path.join(DATA_SUBFOLDER_IN_REPO, ".") # Tambahkan semua di dalam subfolder data
+    if not run_git_command(["git", "add", target_to_add], LOCAL_REPO_PATH):
+        print("Gagal menjalankan git add. Proses dihentikan.")
+        return
+
+    # Git Commit
+    # Cek dulu apakah ada perubahan yang akan di-commit
+    status_process = subprocess.run(["git", "status", "--porcelain"], cwd=LOCAL_REPO_PATH, capture_output=True, text=True)
+    if not status_process.stdout.strip():
+        print("Tidak ada perubahan untuk di-commit. Selesai.")
+        return
+
+    if not run_git_command(["git", "commit", "-m", COMMIT_MESSAGE], LOCAL_REPO_PATH):
+        print("Gagal menjalankan git commit. Proses dihentikan.")
+        return
+
+    # Git Push
+    if not run_git_command(["git", "push"], LOCAL_REPO_PATH):
+        print("Gagal menjalankan git push.")
+        print("Pastikan Anda memiliki hak akses untuk push dan otentikasi sudah benar (SSH key atau PAT untuk HTTPS).")
+        return
+
+    print("\n--- Proses Selesai ---")
+    print(f"Dataset {KAGGLE_DATASET_SLUG} seharusnya sudah ditambahkan/diperbarui di repository Anda dan di-push ke remote.")
+
+if __name__ == "__main__":
+    main()
