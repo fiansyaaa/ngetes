@@ -1,44 +1,27 @@
-# pages/2_📈_Hasil_Prediksi.py
+# pages/1_📝_Input_Prediksi.py
 import streamlit as st
-from sklearn.datasets import load_iris
-from sklearn.ensemble import RandomForestClassifier
-import pandas as pd
+import time
 
-st.title("📈 Hasil Prediksi Spesies Iris")
+st.title("📝 Input Data untuk Prediksi")
 
-# Periksa apakah ada data di session state
-if "input_data" not in st.session_state:
-    st.warning("Silakan isi data terlebih dahulu di halaman 'Input Prediksi'.")
-    st.stop()
+st.write("Masukkan nilai-nilai fitur bunga Iris:")
 
-# Ambil data
-data = st.session_state["input_data"]
+# Input
+sepal_length = st.number_input("Panjang Sepal (cm)", 4.0, 8.0, 5.8)
+sepal_width = st.number_input("Lebar Sepal (cm)", 2.0, 4.5, 3.0)
+petal_length = st.number_input("Panjang Petal (cm)", 1.0, 7.0, 4.35)
+petal_width = st.number_input("Lebar Petal (cm)", 0.1, 2.5, 1.3)
 
-# Load model
-iris = load_iris(as_frame=True)
-X = iris.data
-y = iris.target
-model = RandomForestClassifier()
-model.fit(X, y)
+if st.button("Prediksi Sekarang"):
+    st.session_state["input_data"] = {
+        "sepal_length": sepal_length,
+        "sepal_width": sepal_width,
+        "petal_length": petal_length,
+        "petal_width": petal_width,
+    }
+    st.success("Data disimpan! Mengarahkan ke halaman hasil...")
+    time.sleep(1)
+    st.experimental_rerun()  # rerun untuk redirect
 
-# Prediksi
-X_new = pd.DataFrame([[
-    data["sepal_length"],
-    data["sepal_width"],
-    data["petal_length"],
-    data["petal_width"]
-]], columns=X.columns)
-
-prediction = model.predict(X_new)[0]
-probs = model.predict_proba(X_new)[0]
-
-# Hasil
-st.markdown("### Data yang Dimasukkan")
-st.write(X_new)
-
-st.markdown("### Prediksi")
-st.success(f"Spesies bunga Iris diprediksi sebagai **{iris.target_names[prediction]}**")
-
-st.markdown("### Probabilitas Klasifikasi")
-for i, class_name in enumerate(iris.target_names):
-    st.write(f"- {class_name}: {probs[i]:.2%}")
+    # Redirect ke halaman hasil prediksi (halaman 3)
+    st.switch_page("pages/2_📈_Hasil_Prediksi.py")
