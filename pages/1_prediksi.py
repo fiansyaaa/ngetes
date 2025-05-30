@@ -1,10 +1,7 @@
 # pages/1_📝_Input_Prediksi.py
 import streamlit as st
-import time
 
 st.title("📝 Input Data untuk Prediksi")
-
-st.write("Masukkan nilai-nilai fitur bunga Iris:")
 
 # Input
 sepal_length = st.number_input("Panjang Sepal (cm)", 4.0, 8.0, 5.8)
@@ -20,8 +17,10 @@ if st.button("Prediksi Sekarang"):
         "petal_width": petal_width,
     }
     st.success("Data disimpan! Mengarahkan ke halaman hasil...")
-    time.sleep(1)
-    st.experimental_rerun()  # rerun untuk redirect
 
-    # Redirect ke halaman hasil prediksi (halaman 3)
-    st.switch_page("pages/2_📈_Hasil_Prediksi.py")
+    # Redirect ke halaman hasil prediksi
+    try:
+        st.switch_page("pages/2_📈_Hasil_Prediksi.py")
+    except Exception as e:
+        st.warning("Fitur `st.switch_page()` belum tersedia di versi Streamlit Anda.")
+        st.stop()
