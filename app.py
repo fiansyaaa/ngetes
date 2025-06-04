@@ -1,11 +1,20 @@
+app.py
+
 import streamlit as st
 
-st.set_page_config(page_title="Prediksi Alpukat", layout="wide")
+st.set_page_config(layout="centered", page_title="Anemia Prediction")
 
-st.title("🥑 Aplikasi Prediksi Kematangan Alpukat")
+st.title("Prediksi Anemia") st.header("Selamat datang di Aplikasi Prediksi Anemia")
+
 st.markdown("""
-Selamat datang di aplikasi ini!  
-Gunakan sidebar untuk:
-- Melihat data alpukat
-- Melakukan prediksi tingkat kematangan berdasarkan fitur-fitur seperti **berat, warna, dan kekerasan**.
-""")
+
+Fitur Aplikasi:
+
+Menampilkan data pasien
+
+Prediksi kemungkinan anemia berdasarkan fitur input
+
+Visualisasi interaktif dan hasil klasifikasi
+
+
+Silakan gunakan menu di sebelah kiri untuk menjelajahi slide. """)
