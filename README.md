@@ -1,13 +1,12 @@
-# Aplikasi Streamlit Pemantauan dan Prediksi Gempa
+# 🥑 Aplikasi Streamlit Prediksi Kematangan Alpukat
 
-Aplikasi ini dibuat menggunakan Streamlit untuk menampilkan data gempa bumi dan melakukan prediksi sederhana magnitudo berdasarkan tanggal dan kedalaman.
+Aplikasi ini memanfaatkan data alpukat untuk memprediksi tingkat kematangan berdasarkan berat, warna, dan kekerasan.
 
 ## Fitur
-- Visualisasi data gempa dari CSV
-- Prediksi magnitudo menggunakan regresi linear
-- UI interaktif berbasis Streamlit
+- Visualisasi data alpukat
+- Prediksi tingkat kematangan menggunakan regresi linear
 
-## Menjalankan Aplikasi
+## Cara Menjalankan
 
 ```bash
 streamlit run app.py
