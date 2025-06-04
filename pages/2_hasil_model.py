@@ -1,33 +1,28 @@
 import streamlit as st
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 
-st.set_page_config(page_title="Prediksi Kematangan Alpukat", layout="wide")
+st.title("Prediksi Anemia")
 
-st.title("🧠 Prediksi Kematangan Alpukat")
+# Load data dan model
+df = pd.read_csv("anemia_dataset.csv")
+X = df.drop(columns=["Anemia"])
+y = df["Anemia"]
 
-# Upload file CSV
-uploaded_file = st.file_uploader("Upload dataset CSV kamu", type=["csv"])
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+model = RandomForestClassifier()
+model.fit(X, y)
 
-    # Rename kolom supaya sesuai dengan format yang dibutuhkan model
-    df = df.rename(columns={
-        'berat_buah': 'Berat',
-        'warna_buah': 'Warna',
-        'kekerasan_buah': 'Kekerasan',
-        'kematangan': 'Ripeness'
-    })
+# Input form
+st.markdown("Masukkan data pasien untuk memprediksi apakah mengalami anemia.")
 
-    # Cek apakah semua kolom yang dibutuhkan tersedia
-    required_columns = ['Berat', 'Warna', 'Kekerasan', 'Ripeness']
-    if all(col in df.columns for col in required_columns):
-        st.success("Dataset berhasil dimuat! Menampilkan data:")
-        st.dataframe(df)
-
-        # Kode prediksi atau visualisasi bisa dilanjutkan di sini...
-        # Contoh placeholder:
-        st.write("✅ Data siap digunakan untuk prediksi model!")
+input_data = {}
+for col in X.columns:
+    if df[col].dtype in ['float64', 'int64']:
+        input_data[col] = st.number_input(f"{col}", value=float(df[col].mean()))
     else:
-        st.error(f"Dataset harus memiliki kolom: {required_columns}")
-else:
-    st.info("Silakan upload file CSV terlebih dahulu.")
+        input_data[col] = st.selectbox(f"{col}", options=list(df[col].unique()))
+
+if st.button("Prediksi"):
+    input_df = pd.DataFrame([input_data])
+    prediction = model.predict(input_df)[0]
+    st.success(f"Hasil Prediksi: {'Anemia' if prediction == 1 else 'Tidak Anemia'}")
