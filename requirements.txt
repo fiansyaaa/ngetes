@@ -1,9 +1,4 @@
----
-
-## 📄 6. `requirements.txt`
-
-```txt
-streamlit
+streamlit>=1.30
 pandas
 scikit-learn
 matplotlib
